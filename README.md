@@ -1,10 +1,6 @@
 # Jobseekers
 
-Tato aplikace slouží k evidenci uchazeèù o zamìstnání, 
-konkrétnì juniorních programátorù, kteøí jsou spoleènì 
-se svými osobními údaji a dovednostmi ukládáni do databáze. 
-Aplikace umožòuje pøidávání, vyhledávání
-a mazání kandidátù.
+Tato aplikace slouží k evidenci uchazeèù o zamìstnání, konkrétnì juniorních programátorù, kteøí jsou spoleènì se svými osobními údaji a dovednostmi ukládáni do databáze. Aplikace umožòuje pøidávání, vyhledávání a mazání kandidátù.
 
 ## Funkce aplikace
 

@@ -7,8 +7,16 @@ using System.Threading.Tasks;
 
 namespace Jobseekers
 {
+    /// <summary>
+    /// Třída InputValidation obsahuje metody pro validaci uživatelských vstupů
+    /// </summary>
     class InputValidation
     {
+        /// <summary>
+        /// Metoda vrací zvalidovaný název (křestní jméno, příjmení, město atd.)
+        /// </summary>
+        /// <param name="userInput">Uživatelský vstup</param>
+        /// <returns>Zvalidovaný názevp</returns>
         public string GetValidatedName(string userInput)
         {
             while (string.IsNullOrWhiteSpace(userInput = Console.ReadLine()?.Trim() ?? "")
@@ -21,6 +29,11 @@ namespace Jobseekers
             return userInput;
         }
 
+        /// <summary>
+        /// Metoda vrací zvalidovaný datum v požadovaném formátu a zároveň hlídá, aby byl kandidát plnoletý
+        /// </summary>
+        /// <param name="userInput">Uživatelský vstup</param>
+        /// <returns>Zvalidovaný datum narození</returns>
         public DateTime GetValidatedDate(string userInput)
         {
             DateTime validDate;
@@ -35,6 +48,11 @@ namespace Jobseekers
             return validDate;
         }
 
+        /// <summary>
+        /// Metoda vrací zvalidované telefonní číslo v požadovaném formátu
+        /// </summary>
+        /// <param name="userInput">Uživatelský vstup</param>
+        /// <returns>Zvalidované telefonní číslop</returns>
         public string GetValidatedPhoneNumber(string userInput)
         {
             while (string.IsNullOrWhiteSpace(userInput = Console.ReadLine()?.Trim() ?? "") || !IsValidPhoneNumber(userInput))
@@ -45,6 +63,11 @@ namespace Jobseekers
             return userInput;
         }
 
+        /// <summary>
+        /// Metoda vrací zvalidovaný e-mail
+        /// </summary>
+        /// <param name="userInput">Uživatelský vstup</param>
+        /// <returns>Zvalidovaný e-mail</returns>
         public string GetValidatedEmail(string userInput)
         {
             while (string.IsNullOrWhiteSpace(userInput = Console.ReadLine()?.Trim() ?? "") || !IsValidEmail(userInput))
@@ -55,6 +78,11 @@ namespace Jobseekers
             return userInput;
         }
 
+        /// <summary>
+        /// Metoda vrací zvalidované ID
+        /// </summary>
+        /// <param name="userInput">Uživatelský vstup</param>
+        /// <returns>Zvalidované ID</returns>
         public int GetValidatedId(int userInput)
         {
             while (!int.TryParse(Console.ReadLine(), out userInput))
@@ -64,11 +92,19 @@ namespace Jobseekers
             return userInput;
         }
 
+        /// <summary>
+        /// Metoda vrací odpověď na otázku, jestli uživatelský vstup začíná velkým písmenem
+        /// </summary>
+        /// <param name="userInput">Uživatelský vstup</param>
         private bool IsFirstLetterUppercase(string userInput)
         {
             return char.IsUpper(userInput[0]);
         }
 
+        /// <summary>
+        /// Metoda vrací odpověď na otázku, jestli uživatelský vstup obsahuje speciální znaky
+        /// </summary>
+        /// <param name="userInput">Uživatelský vstup</param>
         private bool ContainsDigitsOrSpecialCharacters(string userInput)
         {
             foreach (char symbol in userInput)
@@ -81,11 +117,19 @@ namespace Jobseekers
             return false;
         }
 
+        /// <summary>
+        /// Metoda vrací odpověď na otázku, jestli je kandidát starší osmnácti let
+        /// </summary>
+        /// <param name="birthDate"></param>
         private bool IsCandidateAdult(DateTime birthDate)
         {
             return birthDate.AddYears(18) <= DateTime.Now;
         }
 
+        /// <summary>
+        /// Metoda vrací odpověď na otázku, jestli zadané telefonní číslo odpovídá požadovaného formátu
+        /// </summary>
+        /// <param name="phoneNumber">Telefonní číslo</param>
         private bool IsValidPhoneNumber(string phoneNumber)
         {
             // Regulární výraz pro formát +420 xxx xxx xxx
@@ -93,6 +137,11 @@ namespace Jobseekers
             return System.Text.RegularExpressions.Regex.IsMatch(phoneNumber, pattern);
         }
 
+        /// <summary>
+        /// Metoda vrací odpověď na otázku, jestli zadaný e-mail odpovídá požadovanému formátu
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
         private bool IsValidEmail(string email)
         {
             // Regulární výraz pro kontrolu formátu e-mailu
