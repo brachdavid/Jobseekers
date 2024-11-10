@@ -136,8 +136,11 @@ namespace Jobseekers
             {
                 CandidateService.GetAllProgrammingLanguages();
 
-                Console.WriteLine("Zadej ID programovacího jazyka (pokud chceš zadat více programovacích jazyků, odděl je, prosím, čárkou):");
-                var selectedIds = Console.ReadLine()!.Split(',').Select(int.Parse).ToList();
+                // Použití metody pro validaci z InputValidation
+                InputValidation inputValidation = new InputValidation();
+                Console.Write("Zadej ID programovacího jazyka (pokud chceš zadat více programovacích jazyků, odděl je čárkou): ");
+                var selectedIds = inputValidation.GetValidatedProgrammingLanguageIds();
+
                 return selectedIds;
             }
         }

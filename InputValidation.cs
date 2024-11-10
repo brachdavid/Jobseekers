@@ -92,6 +92,32 @@ namespace Jobseekers
             return userInput;
         }
 
+        // Metoda ověřuje ID programovacích jazyků zadaných uživatelem
+        public List<int> GetValidatedProgrammingLanguageIds()
+        {
+            List<int> ids = new List<int>();
+            bool isValid = false;
+
+            while (!isValid)
+            {
+                try
+                {
+                    var input = Console.ReadLine()!.Trim();
+                    ids = input.Split(',')
+                               .Select(id => int.Parse(id.Trim()))
+                               .ToList();
+
+                    isValid = true; // Vstup je platný, ukončíme cyklus
+                }
+                catch (FormatException)
+                {
+                    Console.WriteLine("Chyba: Zadejte prosím pouze čísla oddělená čárkou. Zkuste to znovu.");
+                }
+            }
+
+            return ids;
+        }
+
         /// <summary>
         /// Metoda vrací odpověď na otázku, jestli uživatelský vstup začíná velkým písmenem
         /// </summary>
