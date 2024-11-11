@@ -3,15 +3,24 @@
     /// <summary>
     /// Hlavní vstupní třída aplikace Jobseekers
     /// </summary>
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static async Task Main()
         {
-            // Inicializace komunikační služby pro interakci s uživatelem
-            CommunicationService communicationService = new CommunicationService();
+            try
+            {
+                // Inicializace komunikační služby pro interakci s uživatelem
+                CommunicationService communicationService = new();
 
-            // Spuštění hlavní metody pro ovládání programu
-            communicationService.RunProgram();
+                // Spuštění hlavní asynchronní metody pro ovládání programu
+                await communicationService.RunProgramAsync();
+            }
+            catch (Exception ex)
+            {
+                // Logování chyb a informování uživatele
+                Console.WriteLine($"Neočekávaná chyba: {ex.Message}");
+                Console.WriteLine("Něco se pokazilo. Zkuste to prosím znovu nebo kontaktujte podporu.");
+            }
         }
     }
 }

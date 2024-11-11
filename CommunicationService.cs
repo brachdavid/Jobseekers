@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Jobseekers
+﻿namespace Jobseekers
 {
     /// <summary>
     /// Třída CommunicationService obsahující metody pro komunikaci s uživatelem a
     /// </summary>
-    class CommunicationService
+    public class CommunicationService
     {
         /// <summary>
         /// Inicializace instance CandidateService
@@ -21,18 +15,21 @@ namespace Jobseekers
         public InputValidation InputValidation { get; private set; }
 
         /// <summary>
-        /// Konstruktor, který přijímá instance CandidateService a InputValidation
+        /// Konstruktor přijímá instance CandidateService a InputValidation přes Dependency Injection
         /// </summary>
+        /// <param name="candidateService">Instance CandidateService, která je injektována</param>
+        /// <param name="inputValidation">Instance InputValidation, která je injektována</param>
         public CommunicationService()
         {
-            CandidateService = new CandidateService();
+            // Pokud nejsou parametry předány, vytvoří se nové instance
+            CandidateService = new CandidateService(new ApplicationDbContext());
             InputValidation = new InputValidation();
         }
 
         /// <summary>
-        /// Metoda rozbíhá program sloužící ke správě kandidátů
+        /// Asynchronní metoda rozbíhá program sloužící ke správě kandidátů
         /// </summary>
-        public void RunProgram()
+        public async Task RunProgramAsync()
         {
             char choice = '0';
             while (choice != '6')
@@ -40,32 +37,32 @@ namespace Jobseekers
                 PrintMenu();
                 choice = Console.ReadKey().KeyChar;
                 Console.WriteLine();
-                ProcessChoice(choice);
+                await ProcessChoiceAsync(choice);
             }
         }
 
         /// <summary>
-        /// Metoda zpracovává uživatelskou volbu
+        /// Asynchronní metoda zpracovává uživatelskou volbu
         /// </summary>
         /// <param name="choice"></param>
-        public void ProcessChoice(char choice)
+        public async Task ProcessChoiceAsync(char choice)
         {
             switch (choice)
             {
                 case '1':
-                    AddCandidate();
+                    await AddCandidateAsync();
                     break;
                 case '2':
-                    DisplayAllCandidates();
+                    await DisplayAllCandidatesAsync();
                     break;
                 case '3':
-                    SearchCandidatesByProgrammingLanguageId();
+                    await SearchCandidatesByProgrammingLanguageIdAsync();
                     break;
                 case '4':
-                    DeleteCandidateById();
+                    await DeleteCandidateByIdAsync();
                     break;
                 case '5':
-                    DeleteAllCandidates();
+                    await DeleteAllCandidatesAsync();
                     break;
                 case '6':
                     Console.WriteLine("Děkujeme za použití aplikace a na viděnou zase příště!\nLibovolnou klávesou ukončete program...");
@@ -80,7 +77,7 @@ namespace Jobseekers
         /// <summary>
         /// Metoda vykreslí hlavní menu celé aplikace
         /// </summary>
-        public void PrintMenu()
+        public static void PrintMenu()
         {
             Console.Clear();
             Console.WriteLine("-------------------- Výběrové řízení - Junior Programátor --------------------\n");
@@ -94,9 +91,9 @@ namespace Jobseekers
         }
 
         /// <summary>
-        /// Metoda přidává nového kandidáta založeného na uživatelských vstupech
+        /// Asynchronní etoda přidává nového kandidáta založeného na uživatelských vstupech
         /// </summary>
-        public void AddCandidate()
+        public async Task AddCandidateAsync()
         {
             Console.Clear();
             Console.WriteLine("-------------------- Přidání nového kandidáta --------------------\n");
@@ -106,11 +103,10 @@ namespace Jobseekers
             string city = EnterCityName();
             string phoneNumber = EnterPhoneNumber();
             string email = EnterEmail();
-            List<int> selectedIds = GetProgrammingLanguagesFromUser();
-            List<ProgrammingLanguage> selectedLanguages = CandidateService.GetProgrammingLanguagesByIds(selectedIds);
+            var selectedIds = await GetProgrammingLanguagesFromUserAsync();
+            List<ProgrammingLanguage> selectedLanguages = await CandidateService.GetProgrammingLanguagesByIdsAsync(selectedIds);
 
-            // Vytvoření nového kandidáta
-            Candidate candidate = new Candidate
+            Candidate candidate = new()
             {
                 FirstName = firstName,
                 LastName = lastName,
@@ -121,38 +117,32 @@ namespace Jobseekers
                 ProgrammingLanguages = selectedLanguages
             };
 
-            // Uložení kandidáta do databáze
-            CandidateService.AddCandidate(candidate);
+            await CandidateService.AddCandidateAsync(candidate);
             Console.WriteLine("Uchazeč přidán." + "\n------------------------------------------" + "\nPro návrat do hlavního menu stiskněte libovolnou klávesu.");
         }
 
         /// <summary>
-        /// Metoda od uživatele získává programovací jazyky, které uchazeč o zaměstnání ovládá
+        /// Asynchronní metoda získává od uživatele programovací jazyky, které uchazeč o zaměstnání ovládá
         /// </summary>
         /// <returns>Seznam programovacích jazyků</returns>
-        private List<int> GetProgrammingLanguagesFromUser()
+        private async Task<List<int>> GetProgrammingLanguagesFromUserAsync()
         {
-            using (var dbContext = new ApplicationDbContext())
-            {
-                CandidateService.GetAllProgrammingLanguages();
+                await CandidateService.GetAllProgrammingLanguagesAsync();
 
-                // Použití metody pro validaci z InputValidation
-                InputValidation inputValidation = new InputValidation();
                 Console.Write("Zadej ID programovacího jazyka (pokud chceš zadat více programovacích jazyků, odděl je čárkou): ");
-                var selectedIds = inputValidation.GetValidatedProgrammingLanguageIds();
+                var selectedIds = InputValidation.GetValidatedProgrammingLanguageIds();
 
                 return selectedIds;
-            }
         }
 
         /// <summary>
-        /// Metoda vypíše kompletní seznam kandidátů uložených v databázi
+        /// Asynchronní metoda vypíše kompletní seznam kandidátů uložených v databázi
         /// </summary>
-        public void DisplayAllCandidates()
+        public async Task DisplayAllCandidatesAsync()
         {
             Console.Clear();
             Console.WriteLine("-------------------- Všichni kandidáti v databázi --------------------\n");
-            var candidates = CandidateService.GetAllCandidates();
+            var candidates = await CandidateService.GetAllCandidatesAsync();
             foreach (var candidate in candidates)
             {
                 Console.WriteLine($"Jméno: {candidate.FirstName} {candidate.LastName}\n" +
@@ -167,18 +157,18 @@ namespace Jobseekers
         }
 
         /// <summary>
-        /// Metoda vypíše seznam kandidátů podle znalosti vybraného programovacího jazyka
+        /// Asynchronní metoda vypíše seznam kandidátů podle znalosti vybraného programovacího jazyka
         /// </summary>
-        public void SearchCandidatesByProgrammingLanguageId()
+        public async Task SearchCandidatesByProgrammingLanguageIdAsync()
         {
             Console.Clear();
             Console.WriteLine("-------------------- Hledání kandidáta podle konkrétního programovacího jazyka --------------------\n");
-            CandidateService.GetAllProgrammingLanguages();
-            int languageId = EnterProgrammingLanguageId(); // Záskání ID programovacího jazyka
+            await CandidateService.GetAllProgrammingLanguagesAsync();
+            int languageId = EnterProgrammingLanguageId();
 
-            List<Candidate> foundCandidates = CandidateService.SearchCandidatesByProgrammingLanguageId(languageId); // Vyhledání kandidátů podle ID jazyka
+            List<Candidate> foundCandidates = await CandidateService.SearchCandidatesByProgrammingLanguageIdAsync(languageId);
 
-            if (foundCandidates.Any())
+            if (foundCandidates.Count != 0)
             {
                 Console.WriteLine("------------------------------------------\nNalezení kandidáti:\n------------------------------------------");
                 foreach (var candidate in foundCandidates)
@@ -194,31 +184,30 @@ namespace Jobseekers
             }
             else
             {
-                Console.WriteLine("Nebyl nalezen žádný kandidát s tímto programovacím jazykem. Přijde vám to divné? Zkontrolujte, jestli vámi zadané ID skutečně existuje.");
+                Console.WriteLine("Nebyl nalezen žádný kandidát s tímto programovacím jazykem.");
             }
             Console.WriteLine("Pro návrat do hlavního menu stiskněte libovolnou klávesu.");
         }
 
         /// <summary>
-        /// Metoda vymaže kandidáta podle zvoleného ID
+        /// Asynchronní metoda vymaže kandidáta podle zvoleného ID
         /// </summary>
-        public void DeleteCandidateById()
+        public async Task DeleteCandidateByIdAsync()
         {
             Console.Clear();
             Console.WriteLine("-------------------- Vymazání kandidáta podle zvoleného ID --------------------\n");
             Console.WriteLine("Dostupní kandidáti" + "\n------------------------------------------");
-            DisplayAllCandidatesWithIds();
-            int candidateId = 0;
+            await DisplayAllCandidatesWithIdsAsync();
             Console.WriteLine("------------------------------------------" + "\nZadejte ID kandidáta, kterého chcete smazat:");
-            candidateId = InputValidation.GetValidatedId(candidateId);
-            CandidateService.DeleteCandidateById(candidateId);
+            int candidateId = InputValidation.GetValidatedId();
+            await CandidateService.DeleteCandidateByIdAsync(candidateId);
             Console.WriteLine("------------------------------------------" + "\nPro návrat do hlavního menu stiskněte libovolnou klávesu.");
         }
 
         /// <summary>
-        /// Metoda vymaže všechny kandidáty v databázi a resetuje ID
+        /// Asynchronní metoda vymaže všechny kandidáty v databázi a resetuje ID
         /// </summary>
-        public void DeleteAllCandidates()
+        public async Task DeleteAllCandidatesAsync()
         {
             Console.Clear();
             Console.WriteLine("-------------------- Vymazání všech kandidátů uložených v databázi --------------------\n");
@@ -226,7 +215,7 @@ namespace Jobseekers
             string confirmation = Console.ReadLine()!.ToLower();
             if (confirmation == "ano")
             {
-                CandidateService.DeleteAllCandidates();
+                await CandidateService.DeleteAllCandidatesAsync();
             }
             else
             {
@@ -239,85 +228,79 @@ namespace Jobseekers
         /// Metoda získává křestní jméno kandidáta
         /// </summary>
         /// <returns>Křestní jméno</returns>
-        public string EnterFirstName()
+        public static string EnterFirstName()
         {
             Console.Write("Zadejte křestní jméno kandidáta: ");
-            string firstName = "";
-            return InputValidation.GetValidatedName(firstName);
+            return InputValidation.GetValidatedName();
         }
 
         /// <summary>
         /// Metoda získává příjmení kandidáta
         /// </summary>
         /// <returns>Příjmení</returns>
-        public string EnterLastName()
+        public static string EnterLastName()
         {
             Console.Write("Zadejte příjmení kandidáta: ");
-            string lastName = "";
-            return InputValidation.GetValidatedName(lastName);
+            return InputValidation.GetValidatedName();
         }
 
         /// <summary>
         /// Metoda získává datum narození kandidáta
         /// </summary>
         /// <returns>Datum narození</returns>
-        public DateTime EnterBirthDate()
+        public static DateTime EnterBirthDate()
         {
             Console.Write("Zadejte datum narození kandidáta (ve formátu yyyy-mm-dd): ");
-            string birthDate = "";
-            return InputValidation.GetValidatedDate(birthDate);
+            return InputValidation.GetValidatedDate();
         }
+
 
         /// <summary>
         /// Metoda zjistí, v jakém městě kandidát bydlí
         /// </summary>
         /// <returns>Město, ve kterém kandidát bydlí</returns>
-        public string EnterCityName()
+        public static string EnterCityName()
         {
             Console.Write("Zadejte název města nebo vesnice, kde momentálně žijete: ");
-            string city = "";
-            return InputValidation.GetValidatedName(city);
+            return InputValidation.GetValidatedName();
         }
 
         /// <summary>
         /// Metoda získává telefonní číslo kandidáta
         /// </summary>
         /// <returns>Telefonní číslo</returns>
-        public string EnterPhoneNumber()
+        public static string EnterPhoneNumber()
         {
             Console.Write("Zadejte telefonní číslo ve formátu +420 xxx xxx xxx: ");
-            string phoneNumber = "";
-            return InputValidation.GetValidatedPhoneNumber(phoneNumber);
+            return InputValidation.GetValidatedPhoneNumber();
         }
 
         /// <summary>
         /// Metoda získává e-mail kandidáta
         /// </summary>
         /// <returns>E-mail</returns>
-        public string EnterEmail()
+        public static string EnterEmail()
         {
             Console.Write("Zadejte e-mailovou adresu ve formátu example@example.com: ");
-            string email = "";
-            return InputValidation.GetValidatedEmail(email);
+            return InputValidation.GetValidatedEmail();
         }
 
         /// <summary>
         /// Metoda získává programovací jazyk
         /// </summary>
         /// <returns>Programovací jazyk</returns>
-        public int EnterProgrammingLanguageId()
+        public static int EnterProgrammingLanguageId()
         {
             Console.Write("Zadejte id programovacího jazyka: ");
-            int userInput = 0;
-            return InputValidation.GetValidatedId(userInput);
+            return InputValidation.GetValidatedId();
         }
 
         /// <summary>
-        /// Metoda vypíše kandidáty z databáze, přičemž zobrazí pouze ID, křestní jméno a příjmení
+        /// Asynchronní metoda vypíše kandidáty z databáze, přičemž zobrazí pouze ID, křestní jméno a příjmení
         /// </summary>
-        public void DisplayAllCandidatesWithIds()
+        public async Task DisplayAllCandidatesWithIdsAsync()
         {
-            var candidates = CandidateService.GetAllCandidates();
+            var candidates = await CandidateService.GetAllCandidatesAsync();
             foreach (var candidate in candidates)
             {
                 Console.WriteLine($"ID: {candidate.Id} Jméno a příjmení: {candidate.FirstName} {candidate.LastName}");

@@ -1,138 +1,115 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Jobseekers
 {
     /// <summary>
-    /// Třída CandidateService obsahující metody pro manipulaci s kandidáty v databázi
+    /// Třída CandidateService s primárním konstruktorem obsahující metody pro manipulaci s kandidáty v databázi
     /// </summary>
-    class CandidateService
+    public class CandidateService(ApplicationDbContext dbContext)
     {
         /// <summary>
-        /// Metoda přidává nového kandidáta do databáze
+        /// Soukromá proměnná pro ukládání instance databázového kontextu. Díky modifikátoru readonly nebude hodnota této proměnné po konstrukci třídy změněna
+        /// </summary>
+        private readonly ApplicationDbContext _dbContext = dbContext;
+
+        /// <summary>
+        /// Asynchronní metoda přidává nového kandidáta do databáze.
         /// </summary>
         /// <param name="candidate">Instance kandidáta</param>
-        public void AddCandidate(Candidate candidate)
+        public async Task AddCandidateAsync(Candidate candidate)
         {
-            // Použití using bloku k otevření a automatickému uzavření kontextu databáze
-            using (var dbContext = new ApplicationDbContext())
-            {
-                // Najde existující programovací jazyky v databázi
-                var languageIds = candidate.ProgrammingLanguages.Select(pl => pl.Id).ToList();
-                var existingLanguages = dbContext.ProgrammingLanguages
-                    .Where(pl => languageIds.Contains(pl.Id))
-                    .ToList();
+            // Najde existující programovací jazyky v databázi
+            var languageIds = candidate.ProgrammingLanguages.Select(pl => pl.Id).ToList();
+            var existingLanguages = await _dbContext.ProgrammingLanguages
+                                                   .Where(pl => languageIds.Contains(pl.Id))
+                                                   .ToListAsync();
 
-                // Přiřadí existující jazyky ke kandidátovi
-                candidate.ProgrammingLanguages = existingLanguages;
+            // Přiřadí existující jazyky ke kandidátovi
+            candidate.ProgrammingLanguages = existingLanguages;
 
-                // Přidání kandidáta do tabulky Kandidátů v databázi
-                dbContext.Candidates.Add(candidate);
-                // Uložení změn v databázi
-                dbContext.SaveChanges();
-            }
+            // Přidání kandidáta do tabulky Kandidátů v databázi
+            _dbContext.Candidates.Add(candidate);
+            // Uložení změn v databázi
+            await _dbContext.SaveChangesAsync();
         }
 
         /// <summary>
-        /// Metoda získává seznam programovacích jazyků na základě jejich ID
+        /// Asynchronní metoda získává seznam programovacích jazyků na základě jejich ID.
         /// </summary>
         /// <param name="ids">Seznam ID programovacích jazyků</param>
         /// <returns>Seznam programovacích jazyků</returns>
-        public List<ProgrammingLanguage> GetProgrammingLanguagesByIds(List<int> ids)
+        public async Task<List<ProgrammingLanguage>> GetProgrammingLanguagesByIdsAsync(List<int> ids)
         {
-            // Použití using bloku k otevření kontextu databáze
-            using (var dbContext = new ApplicationDbContext())
-            {
-                return dbContext.ProgrammingLanguages
-                                .Where(pl => ids.Contains(pl.Id))
-                                .ToList();
-            }
+                return await _dbContext.ProgrammingLanguages
+                                      .Where(pl => ids.Contains(pl.Id))
+                                      .ToListAsync();
         }
 
         /// <summary>
-        /// Metoda získává všechny kandidáty včetně jejich programovacích jazyků
+        /// Asynchronní metoda získává všechny kandidáty včetně jejich programovacích jazyků.
         /// </summary>
         /// <returns>Seznam všech kandidátů</returns>
-        public List<Candidate> GetAllCandidates()
+        public async Task<List<Candidate>> GetAllCandidatesAsync()
         {
-            using (var dbContext = new ApplicationDbContext())
-            {
-                return dbContext.Candidates.Include(c => c.ProgrammingLanguages).ToList();
-            }
+                return await _dbContext.Candidates.Include(c => c.ProgrammingLanguages).ToListAsync();
         }
 
         /// <summary>
-        /// Metoda zobrazí všechny dostupné programovací jazyky
+        /// Asynchronní metoda zobrazí všechny dostupné programovací jazyky
         /// </summary>
-        public void GetAllProgrammingLanguages()
+        public async Task GetAllProgrammingLanguagesAsync()
         {
             Console.WriteLine("Dostupné programovací jazyky:");
-            using (var dbContext = new ApplicationDbContext())
-            {
-                var languages = dbContext.ProgrammingLanguages.ToList();
+                var languages = await _dbContext.ProgrammingLanguages.ToListAsync();
                 foreach (var lang in languages)
                 {
                     Console.WriteLine($"{lang.Id}: {lang.Language}");
                 }
                 Console.WriteLine();
-            }
         }
 
         /// <summary>
-        /// Metoda vyhledá kandidáty na základě znalosti programovacího jazyka
+        /// Asynchronní metoda vyhledá kandidáty na základě znalosti programovacího jazyka.
         /// </summary>
         /// <param name="languageId">ID programovacího jazyka</param>
         /// <returns>Seznam nalezených kandidátů</returns>
-        public List<Candidate> SearchCandidatesByProgrammingLanguageId(int languageId)
+        public async Task<List<Candidate>> SearchCandidatesByProgrammingLanguageIdAsync(int languageId)
         {
-            using (var dbContext = new ApplicationDbContext())
-            {
-                return dbContext.Candidates
-                         .Include(c => c.ProgrammingLanguages) // Zajistí, že se načtou i programovací jazyky
-                         .Where(c => c.ProgrammingLanguages.Any(pl => pl.Id == languageId))
-                         .ToList();
-            }
+                return await _dbContext.Candidates
+                    .Include(c => c.ProgrammingLanguages) // Zajistí, že se načtou i programovací jazyky
+                    .Where(c => c.ProgrammingLanguages.Any(pl => pl.Id == languageId))
+                    .ToListAsync();
         }
 
         /// <summary>
-        /// Metoda smaže kandidáta na základě ID
+        /// Asynchronní metoda smaže kandidáta na základě ID.
         /// </summary>
         /// <param name="candidateId">ID kandidáta, který má být smazán</param>
-        public void DeleteCandidateById(int candidateId)
+        public async Task DeleteCandidateByIdAsync(int candidateId)
         {
-            using (var dbContext = new ApplicationDbContext())
-            {
-                var candidate = dbContext.Candidates.Find(candidateId);
+                var candidate = await _dbContext.Candidates.FindAsync(candidateId);
                 if (candidate != null)
                 {
-                    dbContext.Candidates.Remove(candidate);
-                    dbContext.SaveChanges();
-                    Console.WriteLine($"Kandidát byl úspěšně vymazán.");
+                    _dbContext.Candidates.Remove(candidate);
+                    await _dbContext.SaveChangesAsync();
+                    Console.WriteLine("Kandidát byl úspěšně vymazán.");
                 }
                 else
                 {
-                    Console.WriteLine($"Kandidát s tímto ID nebyl nalezen.");
+                    Console.WriteLine("Kandidát s tímto ID nebyl nalezen.");
                 }
-            }
         }
 
         /// <summary>
-        /// Smaže všechny kandidáty z databáze a resetuje ID
+        /// Asynchronní metoda smaže všechny kandidáty z databáze a resetuje ID.
         /// </summary>
-        public void DeleteAllCandidates()
+        public async Task DeleteAllCandidatesAsync()
         {
-            using (var dbContext = new ApplicationDbContext())
-            {
-                var allCandidates = dbContext.Candidates.ToList();
-                dbContext.Candidates.RemoveRange(allCandidates);
-                dbContext.SaveChanges();
-                dbContext.Database.ExecuteSqlRaw("DBCC CHECKIDENT ('Candidates', RESEED, 0)");
+                var allCandidates = await _dbContext.Candidates.ToListAsync();
+                _dbContext.Candidates.RemoveRange(allCandidates);
+                await _dbContext.SaveChangesAsync();
+                await _dbContext.Database.ExecuteSqlRawAsync("DBCC CHECKIDENT ('Candidates', RESEED, 0)");
                 Console.WriteLine("Všichni kandidáti byli úspěšně vymazáni a zároveň bylo resetováno ID.");
-            }
         }
     }
 }

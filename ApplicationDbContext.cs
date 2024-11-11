@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Jobseekers
 {
     /// <summary>
     /// Třída ApplicationDbContext slouží pro správu databázových operací
     /// </summary>
-    class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : DbContext
     {
         /// <summary>
         /// DbSet pro uchovávání dat kandidátů v databázi

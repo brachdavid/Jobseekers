@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Jobseekers
 {
     /// <summary>
     /// Třída Candidate reprezentuje entitu kandidáta v databázi
     /// </summary>
-    class Candidate
+    public class Candidate
     {
         /// <summary>
         /// Unikátní identifikátor kandidáta
@@ -44,6 +39,6 @@ namespace Jobseekers
         /// <summary>
         /// Seznam programovacích jazyků, které kandidát ovládá
         /// </summary>
-        public List<ProgrammingLanguage> ProgrammingLanguages { get; set; } = new List<ProgrammingLanguage>();
+        public List<ProgrammingLanguage> ProgrammingLanguages { get; set; } = [];
     }
 }
